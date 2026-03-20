@@ -1,57 +1,97 @@
-# House Price Prediction
+# 🏠 House Price Prediction
 
-## Overview
+A machine learning project to predict house sale prices using advanced regression techniques, feature engineering, hyperparameter tuning, and model explainability.
 
-This project predicts house prices using linear regression. It involves data cleaning, feature selection, and preprocessing.
+---
 
-## Dependencies
+## 📁 Dataset
 
-- numpy
-- pandas
-- seaborn
-- tensorflow
-- tensorflow_decision_forests
-- scikit-learn
+- **Source:** Kaggle House Prices Competition (`train.csv`, `test.csv`)
+- **Target:** `SalePrice` (log-transformed during training)
+- **Features:** 80+ features covering size, quality, location, and condition
 
-## Steps
+---
 
-1. **Data Loading**
-   ```python
-   import pandas as pd
-   df_train = pd.read_csv('/content/train.csv')
-   df_test = pd.read_csv('/content/test.csv')
+## 🛠️ Tech Stack
 
-2. **Data Cleaning**
+![Python](https://img.shields.io/badge/Python-3.x-blue)
+![Scikit-learn](https://img.shields.io/badge/Scikit--learn-ML-orange)
+![XGBoost](https://img.shields.io/badge/XGBoost-Boosting-red)
+![SHAP](https://img.shields.io/badge/SHAP-Explainability-purple)
 
-Drop columns with >50% missing values.
-Fill missing values for numerical columns with mean and categorical with mode.
+- Python, Pandas, NumPy
+- Scikit-learn, XGBoost, LightGBM
+- Matplotlib, Seaborn
+- SHAP, LIME (model explainability)
+- Optuna (hyperparameter tuning)
 
-df_cleaned = df_train.drop(['PoolQC', 'MiscFeature', 'Alley', 'Fence', 'FireplaceQu'], axis=1)
+---
 
-3.**Preprocessing**
+## 🔍 Project Workflow
 
-**Feature Selection:** Use SelectKBest to select top 3 features.
-**Normalization:** Scale features using MinMaxScaler.
+1. **Load Data** — Train, test, and sample submission CSVs
+2. **EDA** — Distribution of `SalePrice`, missing value analysis
+3. **Preprocessing**
+   - Fill categorical NAs with `"None"` (e.g., no garage/pool)
+   - Fill numeric NAs with `0`
+   - Log-transform target: `y = log1p(SalePrice)`
+4. **Feature Engineering**
+   - `TotalSF` = Basement + 1st Floor + 2nd Floor area
+   - `TotalBath` = Full + Half bathrooms (weighted)
+   - `HouseAge` and `RemodAge`
+   - Binary flags: `HasPool`, `HasGarage`, `HasBsmt`
+   - Ordinal encoding for quality columns (e.g., `Ex=5`, `Gd=4`)
+   - One-hot encoding via `pd.get_dummies()`
+5. **Modeling**
+   - Baseline: Lasso, Random Forest, Gradient Boosting
+   - Stacking: RF + GBR → Lasso meta-learner
+   - Tuned: XGBoost with `RandomizedSearchCV`
+6. **Evaluation** — 5-Fold Cross-Validation (RMSE on log-target)
+7. **Explainability** — SHAP feature importance + LIME instance explanations
+8. **Submission** — Predictions saved to `sample_submission.csv`
 
-from sklearn.feature_selection import **SelectKBest**, f_regression
-from sklearn.preprocessing import **MinMaxScaler**
+---
 
-4. **Model Training**
+## 📊 Models & Evaluation
 
-Train a linear regression model and make predictions.
+| Model                        | CV RMSE (log) |
+|------------------------------|:-------------:|
+| Lasso                        | ~0.115        |
+| Random Forest                | ~0.140        |
+| Gradient Boosting            | ~0.118        |
+| **Stacking (RF + GBR)**      | **Best**      |
+| XGBoost (Tuned)              | Competitive   |
 
-from sklearn.linear_model import LinearRegression
-X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
-model = LinearRegression()
-model.fit(X_train, y_train)
+> Metric: Root Mean Squared Log Error (RMSLE) via 5-Fold CV
 
-5. **Submission**
+---
 
-Save predictions to **submission.csv.**
+## 📂 Project Structure
+```
+├── train.csv
+├── test.csv
+├── sample_submission.csv
+├── House_Price_Prediction_Mlt_Mini_Project.ipynb
+├── final_model.pkl
+├── shap_summary.png
+└── README.md
+```
 
-output = pd.read_csv('/content/sample_submission.csv')
-output['SalePrice'] = y_pred
-output.to_csv('submission.csv', index=False)
+---
 
+## 🚀 How to Run
+```bash
+git clone https://github.com/Abinaya-Saras/House-Price-Prediction_LR.git
+cd house-price-prediction
+pip install scikit-learn xgboost lightgbm shap lime optuna matplotlib seaborn
+jupyter notebook House_Price_Prediction_Mlt_Mini_Project.ipynb
+```
 
-This version covers the essential points while being concise.
+---
+
+## 📌 Key Findings
+
+- **Log-transforming** `SalePrice` improves model performance significantly
+- **TotalSF** and **Overall Quality** are the strongest price predictors
+- **Stacking** outperforms individual models
+- **SHAP** confirms that size, quality, and neighborhood drive prices most
